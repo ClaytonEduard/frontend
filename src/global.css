@@ -1,5 +1,5 @@
 :root {
-    --primay: #348789;
+    --primary: #348789;
     --secundary: #001489;
     --gray-50: #DDDFEB;
     --gray-100: #97909050;
@@ -24,4 +24,7 @@
     padding-left: 1rem;
     padding-right: 1rem;
     width: 100%;
+}
+body{
+    background-color: var(--gray-50);
 }

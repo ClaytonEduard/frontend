@@ -5,9 +5,11 @@ import { useForm } from "react-hook-form";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Button } from "../../components/Button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { BsKey } from "react-icons/bs";
 import { AiOutlineMail } from "react-icons/ai";
+import { api } from "../../server";
+import { useAuth } from "../../hooks/auth";
 
 interface IFormValues {
   email: string;
@@ -15,6 +17,9 @@ interface IFormValues {
 }
 
 export function Login() {
+  const { signIn } = useAuth();
+  // criando constante de redirecionamento
+  const navigate = useNavigate();
   const schema = yup.object().shape({
     email: yup
       .string()
@@ -34,8 +39,12 @@ export function Login() {
     resolver: yupResolver(schema),
   });
 
-  const submit = handleSubmit((data) => {
-    console.log("🚀 ~ file: index.tsx:27 ~ submit ~ data:", data);
+  const submit = handleSubmit(async ({ email, password }) => {
+    try {
+      signIn({ email, password });
+    } catch (error) {
+      console.log("🚀 ~ file: index.tsx:47 ~ submit ~ error:", error);
+    }
   });
 
   return (
