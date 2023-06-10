@@ -17,6 +17,7 @@ const api = axios.create({
 
 
 let failedRequest: Array<IRequestConfig> = [];
+let isRefreshing = false;
 
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token:salaoagendamento');
@@ -37,29 +38,31 @@ api.interceptors.response.use(
             if (
                 error.response?.data &&
                 error.response?.data.code === 'token.expired') {
+                if (!isRefreshing) {
 
-                try {
-                    const refresh = localStorage.getItem('refresh_token:salaoagendamento')
-                    const response = await api.post('/resfresh', {
-                        refresh_token: refresh,
-                    });
+                    try {
+                        const refresh = localStorage.getItem('refresh_token:salaoagendamento')
+                        const response = await api.post('/users/resfresh', {
+                            refresh_token: refresh,
+                        });
 
-                    const { token, refresh_token } = response.data;
-                    localStorage.setItem('token:salaoagendamento', token);
-                    localStorage.setItem('refresh_token:salaoagendamento', refresh_token);
+                        const { token, refresh_token } = response.data;
+                        localStorage.setItem('token:salaoagendamento', token);
+                        localStorage.setItem('refresh_token:salaoagendamento', refresh_token);
+                        isRefreshing = false;
+                        onRefreshed(token);
 
-                    onRefreshed(token);
-
-                    if (originalRequest?.headers) {
-                        // seta novamente o valor de um novo token
-                        originalRequest.headers.Authorization = `Bearer ${token}`;
+                        if (originalRequest?.headers) {
+                            // seta novamente o valor de um novo token
+                            originalRequest.headers.Authorization = `Bearer ${token}`;
+                        }
+                        return axios(originalRequest);
+                    } catch (error) {
+                        failedRequest.forEach((request) => {
+                            request.onFailure?.(error as AxiosError)
+                        });
+                        failedRequest = [];
                     }
-                    return axios(originalRequest);
-                } catch (error) {
-                    failedRequest.forEach((request) => {
-                        request.onFailure?.(error as AxiosError)
-                    });
-                    failedRequest = [];
                 }
 
                 return new Promise((resolve, reject) => {
