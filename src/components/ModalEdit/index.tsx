@@ -3,16 +3,25 @@ import { useAuth } from "../../hooks/auth";
 import style from "./ModalEdit.module.css";
 import { AiOutlineClose } from "react-icons/ai";
 import { api } from "../../server";
-import { getHours } from "date-fns";
+import { formatISO, getHours, parseISO, setHours } from "date-fns";
+import { toast } from "react-toastify";
+import { isAxiosError } from "axios";
 
 interface IModal {
   isOpen: boolean;
   handleChangeModal: () => void;
   hour: string;
   name: string;
+  id: string;
 }
 
-export function ModalEdit({ isOpen, handleChangeModal, hour, name }: IModal) {
+export function ModalEdit({
+  isOpen,
+  handleChangeModal,
+  hour,
+  name,
+  id,
+}: IModal) {
   const currentValue = new Date().toISOString().split("T")[0];
 
   const { availableSchedules, schedules, date, handleSetDate } = useAuth();
@@ -34,10 +43,27 @@ export function ModalEdit({ isOpen, handleChangeModal, hour, name }: IModal) {
   };
 
   // conectar com a APi para atualizar
-  const updateData = ()=>{
-    // parei em 1h:06 minutos
-  }
+  const updateData = async () => {
+    // formatar a data
+    const formattedDate = formatISO(
+      setHours(parseISO(date), parseInt(hourSchedule))
+    );
 
+    try {
+      await api.put(`/schedules/${id}`, {
+        params: {
+          date: formattedDate,
+          // video 5 1h e 10 min
+        },
+      });
+      toast.success("Atualizado com sucesso");
+      handleChangeModal();
+    } catch (error) {
+      if (isAxiosError(error)) {
+        toast.error(error.response?.data.message);
+      }
+    }
+  };
 
   if (isOpen) {
     return (
@@ -79,7 +105,7 @@ export function ModalEdit({ isOpen, handleChangeModal, hour, name }: IModal) {
           </div>
           <div className={style.footer}>
             <button onClick={handleChangeModal}>Cancelar</button>
-            <button>Editar</button>
+            <button onClick={updateData}>Editar</button>
           </div>
         </div>
       </div>

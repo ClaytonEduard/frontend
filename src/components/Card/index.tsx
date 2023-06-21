@@ -38,9 +38,7 @@ export const Card = ({ name, phone, date, id }: ISchedule) => {
     <>
       <div className={style.background}>
         <div>
-          <span className={`${!isAfterDate && style.disabled}`}>
-            {hours}h
-          </span>
+          <span className={`${!isAfterDate && style.disabled}`}>{hours}h</span>
           <p>
             {name} - {phoneFormatted}
           </p>
@@ -58,6 +56,7 @@ export const Card = ({ name, phone, date, id }: ISchedule) => {
         isOpen={openModal}
         handleChangeModal={handleChangeModal}
         hour={hours}
+        id={id}
         name={name}
       ></ModalEdit>
     </>
